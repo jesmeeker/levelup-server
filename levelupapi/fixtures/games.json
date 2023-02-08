@@ -1,0 +1,26 @@
+[
+    {
+        "model": "levelupapi.game",
+        "pk": 1,
+        "fields": {
+            "name": "Sequence",
+            "description": "So much the best ever game",
+            "game_type": 1,
+            "min_player": 2,
+            "max_player": 4,
+            "gamer": 1
+        }
+    },
+    {
+        "model": "levelupapi.game",
+        "pk": 2,
+        "fields": {
+            "name": "Dungeons and Dragons",
+            "description": "A game for the best of the peoples",
+            "game_type": 2,
+            "min_player": 2,
+            "max_player": 10,
+            "gamer": 1
+        }
+    }
+]
