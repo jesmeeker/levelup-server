@@ -44,17 +44,28 @@ class EventView(ViewSet):
         Returns
             Response -- JSON serialized game instance
         """
-        host = Gamer.objects.get(user=request.auth.user)
-        game = Game.objects.get(pk=request.data["game"])
 
+        try:
+            authenticated_player = Gamer.objects.get(user=request.auth.user)
+
+        except Gamer.DoesNotExist:
+            return Response({'message': 'You sent an invalid token'}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            game = Game.objects.get(pk=request.data['game'])
+        except Game.DoesNotExist:
+            return Response({'message': 'You sent an invalid game ID'}, status=status.HTTP_404_NOT_FOUND)
+        
         event = Event.objects.create(
             date_of_event=request.data["date_of_event"],
+            start_time=request.data["start_time"],
             location=request.data["location"],
-            host=host,
+            host=authenticated_player,
             game=game
         )
         serializer = EventSerializer(event)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     
 class EventGameSerializer(serializers.ModelSerializer):
 
@@ -68,12 +79,19 @@ class EventHostSerializer(serializers.ModelSerializer):
         model = Gamer
         fields = ('full_name',)
 
+class EventAttendeeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Gamer
+        fields = ('full_name',)
+
 class EventSerializer(serializers.ModelSerializer):
     """JSON serializer for game types
     """
     game = EventGameSerializer(many=False)
     host = EventHostSerializer(many=False)
+    attendees = EventAttendeeSerializer(many=True)
 
     class Meta:
         model = Event
-        fields = ('id', 'date_of_event', 'location', 'game', 'host')
+        fields = ('id', 'date_of_event', 'start_time', 'location', 'game', 'host', 'attendees')

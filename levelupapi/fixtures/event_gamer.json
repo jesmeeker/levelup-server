@@ -1,6 +1,6 @@
 [
     {
-        "model": "levelupapi.eventgamer",
+        "model": "levelupapi.eventGamer",
         "pk": 1,
         "fields": {
             "event": 1,
@@ -8,11 +8,11 @@
         }
     },
     {
-        "model": "levelupapi.eventgamer",
+        "model": "levelupapi.eventGamer",
         "pk": 2,
         "fields": {
-            "event": 2,
-            "gamer": 1
+            "event": 1,
+            "gamer": 2
         }
     }
 ]
