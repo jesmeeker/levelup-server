@@ -65,13 +65,41 @@ class EventView(ViewSet):
         )
         serializer = EventSerializer(event)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def update(self, request, pk):
+        """Handle POST operations
+
+        Returns
+            Response -- JSON serialized game instance
+        """
+
+        # try:
+        #     authenticated_player = Gamer.objects.get(user=request.auth.user)
+
+        # except Gamer.DoesNotExist:
+        #     return Response({'message': 'You sent an invalid token'}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            game = Game.objects.get(pk=request.data['game'])
+        except Game.DoesNotExist:
+            return Response({'message': 'You sent an invalid game ID'}, status=status.HTTP_404_NOT_FOUND)
+        
+        event_to_update = Event.objects.get(pk=pk)
+        event_to_update.date_of_event=request.data["date_of_event"]
+        event_to_update.start_time=request.data["start_time"]
+        event_to_update.location=request.data["location"]
+        event_to_update.game=game
+        event_to_update.save()
+
+        serializer = EventSerializer(event_to_update)
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
 
     
 class EventGameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = ('name', )
+        fields = ('id', 'name', )
 
 class EventHostSerializer(serializers.ModelSerializer):
 
