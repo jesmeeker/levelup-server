@@ -3,7 +3,8 @@ from django.http import HttpResponseServerError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers, status
-from levelupapi.models import Event, Game, Gamer
+from levelupapi.models import Event, Game, Gamer, EventGamer
+from rest_framework.decorators import action
 
 
 class EventView(ViewSet):
@@ -34,6 +35,12 @@ class EventView(ViewSet):
             events = events.filter(game_id=query_int)
         else:
             events = Event.objects.all()
+            
+        gamer = Gamer.objects.get(user=request.auth.user)
+                # Set the `joined` property on every event
+        for event in events:
+            # Check to see if the gamer is in the attendees list on the event
+            event.joined = gamer in event.attendees.all()
 
         serialized = EventSerializer(events, many=True)
         return Response(serialized.data, status=status.HTTP_200_OK)
@@ -99,6 +106,24 @@ class EventView(ViewSet):
         event.delete()
         return Response(None, status=status.HTTP_204_NO_CONTENT)
         
+    @action(methods=['post'], detail=True)
+    def signup(self, request, pk):
+        """Post request for a user to sign up for an event"""
+   
+        gamer = Gamer.objects.get(user=request.auth.user)
+        event = Event.objects.get(pk=pk)
+        event.attendees.add(gamer)
+        return Response({'message': 'Gamer added'}, status=status.HTTP_201_CREATED)
+    
+    @action(methods=['delete'], detail=True)
+    def leave(self, request, pk):
+        """Post request for a user to sign up for an event"""
+    
+        gamer = Gamer.objects.get(user=request.auth.user)
+        event = Event.objects.get(pk=pk)
+        event.attendees.remove(gamer)
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
+    
 
     
 class EventGameSerializer(serializers.ModelSerializer):
@@ -128,4 +153,4 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ('id', 'date_of_event', 'start_time', 'location', 'game', 'host', 'attendees')
+        fields = ('id', 'date_of_event', 'start_time', 'location', 'game', 'host', 'attendees', 'joined')
