@@ -93,6 +93,12 @@ class EventView(ViewSet):
 
         serializer = EventSerializer(event_to_update)
         return Response(None, status=status.HTTP_204_NO_CONTENT)
+    
+    def destroy(self, request, pk):
+        event = Event.objects.get(pk=pk)
+        event.delete()
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
+        
 
     
 class EventGameSerializer(serializers.ModelSerializer):
