@@ -59,6 +59,7 @@ class GameView(ViewSet):
         serializer = GameSerializer(game)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+    
     def update(self, request, pk):
         """Handle POST operations
 
