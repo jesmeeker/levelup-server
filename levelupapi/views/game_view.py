@@ -83,7 +83,7 @@ class GameView(ViewSet):
         game_to_update.min_player=request.data['min_player']
         game_to_update.description=request.data['description']
         game_to_update.max_player=request.data['max_player']
-        # game_to_update.gamer = request.data[int('gamer')]
+        game_to_update.gamer = gamer
         game_to_update.game_type = game_type
         game_to_update.save()
         
