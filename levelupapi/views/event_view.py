@@ -3,6 +3,8 @@ from django.http import HttpResponseServerError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers, status
+from django.db.models import Count
+from django.db.models import Q
 from levelupapi.models import Event, Game, Gamer, EventGamer
 from rest_framework.decorators import action
 
@@ -16,10 +18,15 @@ class EventView(ViewSet):
         Returns:
             Response -- JSON serialized event
         """
-        event = Event.objects.get(pk=pk)
-        serializer = EventSerializer(event, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
+        try: 
+            event = Event.objects.annotate(attendees_count=Count('events')).get(pk=pk)
+            # event = Event.objects.get(pk=pk)
+            serializer = EventSerializer(event, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Event.DoesNotExist as ex:
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+        
     def list(self, request):
         """Handle GET requests to get all events
 
@@ -34,13 +41,17 @@ class EventView(ViewSet):
             events = Event.objects.all()
             events = events.filter(game_id=query_int)
         else:
-            events = Event.objects.all()
+            events = Event.objects.annotate(attendees_count=Count('events'))
             
         gamer = Gamer.objects.get(user=request.auth.user)
-                # Set the `joined` property on every event
-        for event in events:
-            # Check to see if the gamer is in the attendees list on the event
-            event.joined = gamer in event.attendees.all()
+
+        events = Event.objects.annotate(
+            attendees_count=Count('attendees'),
+            joined=Count(
+                'attendees',
+                filter=Q(attendees=gamer)
+            )
+        )
 
         serialized = EventSerializer(events, many=True)
         return Response(serialized.data, status=status.HTTP_200_OK)
@@ -70,6 +81,7 @@ class EventView(ViewSet):
             host=authenticated_player,
             game=game
         )
+        
         serializer = EventSerializer(event)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
@@ -149,8 +161,10 @@ class EventSerializer(serializers.ModelSerializer):
     """
     game = EventGameSerializer(many=False)
     host = EventHostSerializer(many=False)
+    attendees_count = serializers.IntegerField(default=None)
     attendees = EventAttendeeSerializer(many=True)
 
     class Meta:
         model = Event
-        fields = ('id', 'date_of_event', 'start_time', 'location', 'game', 'host', 'attendees', 'joined')
+        fields = ('id', 'date_of_event', 'start_time', 'location', 'game', 'host', 'attendees', 'joined', 'attendees_count')
+        depth = 1
