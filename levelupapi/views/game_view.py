@@ -52,47 +52,47 @@ class GameView(ViewSet):
         serializer = GameSerializer(games, many=True)
         return Response(serializer.data)
     
-    # def create(self, request):
-    #     """Handle POST operations
-
-    #     Returns
-    #         Response -- JSON serialized game instance
-    #     """
-    #     try:
-    #         gamer = Gamer.objects.get(user=request.auth.user)
-    #     except Gamer.DoesNotExist:
-    #         return Response({'message': 'You sent an invalid token'}, status=status.HTTP_404_NOT_FOUND)
-
-    #     game_type = GameType.objects.get(pk=request.data['game_type'])
-    #     if game_type is None:
-    #         return Response({'message': 'Please submit the game type. It cannot be blank.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    #     description = request.data.get('description', None)
-    #     if description is None:
-    #         return Response({'message': 'Please submit the description. It cannot be blank.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     game = Game.objects.create(
-    #         name=request.data['name'],
-    #         min_player=request.data['min_player'],
-    #         description=request.data['description'],
-    #         max_player=request.data['max_player'],
-    #         gamer = gamer,
-    #         game_type = game_type,
-    #     )
-    #     serializer = GameSerializer(game)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
     def create(self, request):
         """Handle POST operations
 
-        Returns:
+        Returns
             Response -- JSON serialized game instance
         """
-        gamer = Gamer.objects.get(user=request.auth.user)
-        serializer = CreateGameSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(gamer=gamer)
+        try:
+            gamer = Gamer.objects.get(user=request.auth.user)
+        except Gamer.DoesNotExist:
+            return Response({'message': 'You sent an invalid token'}, status=status.HTTP_404_NOT_FOUND)
+
+        game_type = GameType.objects.get(pk=request.data['game_type'])
+        if game_type is None:
+            return Response({'message': 'Please submit the game type. It cannot be blank.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        description = request.data.get('description', None)
+        if description is None:
+            return Response({'message': 'Please submit the description. It cannot be blank.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        game = Game.objects.create(
+            name=request.data['name'],
+            min_player=request.data['min_player'],
+            description=request.data['description'],
+            max_player=request.data['max_player'],
+            gamer = gamer,
+            game_type = game_type,
+        )
+        serializer = GameSerializer(game)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    # def create(self, request):
+    #     """Handle POST operations
+
+    #     Returns:
+    #         Response -- JSON serialized game instance
+    #     """
+    #     gamer = Gamer.objects.get(user=request.auth.user)
+    #     serializer = CreateGameSerializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save(gamer=gamer)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     
     def update(self, request, pk):
