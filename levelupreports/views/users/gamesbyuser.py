@@ -2,8 +2,8 @@
 from django.shortcuts import render
 from django.db import connection
 from django.views import View
-
 from levelupreports.views.helpers import dict_fetch_all
+from levelupapi.models import Game
 
 
 class UserGameList(View):
@@ -12,7 +12,17 @@ class UserGameList(View):
 
             # TODO: Write a query to get all games along with the gamer first name, last name, and id
             db_cursor.execute("""
-            
+            SELECT 
+                g.name as name,
+                g.description,
+                g.min_player,
+                g.max_player,
+                g.game_type_id,
+                g.gamer_id,
+                u.first_name || ' ' || u.last_name as full_name                
+            FROM levelupapi_game g
+            JOIN levelupapi_gamer gamer ON g.gamer_id = gamer.id
+            JOIN auth_user u ON gamer.user_id = u.id
             """)
             # Pass the db_cursor to the dict_fetch_all function to turn the fetch_all() response into a dictionary
             dataset = dict_fetch_all(db_cursor)
@@ -52,9 +62,7 @@ class UserGameList(View):
                 # TODO: Create a dictionary called game that includes 
                 # the name, description, number_of_players, maker,
                 # game_type_id, and skill_level from the row dictionary
-                game = {
-                    
-                }
+                game = {"name": row['name'], "description": row['description'], "game_type_id": row['game_type_id'], "min_player": row['min_player'], "max_player": row['max_player'], "gamer_id": row['gamer_id']}
                 
                 # See if the gamer has been added to the games_by_user list already
                 user_dict = None
